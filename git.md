@@ -139,19 +139,35 @@ $ git checkout dev
 
 ![1540800490150](git.assets/1540800490150.png)
 
+完成修改后，执行`git add 和 git commit`。
+
 ### 合并分支
 
 ![1540800510964](git.assets/1540800510964.png)
 
 假如我们在`dev`上的工作完成了，就可以把`dev`合并到`master`上。Git怎么合并呢？最简单的方法，就是直接把`master`指向`dev`的当前提交，就完成了合并。
 
+先从dev分支切换到master分支：`git checkout master`，此时查看被修改的文件，其内容和修改前一样。
+
+再通过`git merge dev`合并修改。
+
+
+
 合并完分支后，甚至可以删除`dev`分支。删除`dev`分支就是把`dev`指针给删掉，删掉后，我们就剩下了一条`master`分支。
 
 ![1540800618057](git.assets/1540800618057.png)
 
+```
+λ git branch -d dev
+λ git branch
+* master
+```
 
 
 
+### 解决冲突
+
+当不同分支同时修改同一个文件时，例如master分支和another分支都修改readme.txt，在两个分支都执行`add 和 commit`后，在master分支执行`git merge another`，会出现冲突。
 
 
 
