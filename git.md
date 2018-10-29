@@ -104,7 +104,50 @@ b9ac34f HEAD@{4}: commit (initial): create
 
 以后只需要`git push origin master`就可以推送最新修改。
 
+### 
 
+## 分支
+
+![1540800338447](git.assets/1540800338447.png)
+
+默认情况下，HEAD指向master，master指向提交。每次提交，`master`分支都会向前移动一步，这样，随着你不断提交，`master`分支的线也越来越长。
+
+### 创建新分支时做了什么
+
+`git checkout -b dev`：`-b`参数表示创建并切换。相当于以下两条命令
+
+```
+$ git branch dev
+$ git checkout dev
+```
+
+![1540800427961](git.assets/1540800427961.png)
+
+新建dev分支时，新建了一个指针叫`dev`，指向`master`相同的提交，再把`HEAD`指向`dev`，就表示当前分支在`dev`上。
+
+```
+λ git branch
+* dev
+  master
+```
+
+*号表示当前分支。
+
+
+
+从现在开始，**对工作区的修改和提交就是针对`dev`分支了**，比如新提交一次后，`dev`指针往前移动一步，而`master`指针不变。
+
+![1540800490150](git.assets/1540800490150.png)
+
+### 合并分支
+
+![1540800510964](git.assets/1540800510964.png)
+
+假如我们在`dev`上的工作完成了，就可以把`dev`合并到`master`上。Git怎么合并呢？最简单的方法，就是直接把`master`指向`dev`的当前提交，就完成了合并。
+
+合并完分支后，甚至可以删除`dev`分支。删除`dev`分支就是把`dev`指针给删掉，删掉后，我们就剩下了一条`master`分支。
+
+![1540800618057](git.assets/1540800618057.png)
 
 
 
