@@ -167,21 +167,118 @@ $ git checkout dev
 
 ### 解决冲突
 
-当不同分支同时修改同一个文件时，例如master分支和another分支都修改readme.txt，在两个分支都执行`add 和 commit`后，在master分支执行`git merge another`，会出现冲突。
+当不同分支同时修改同一个文件时，例如master分支和feature1分支都修改readme.txt，在两个分支都执行`add 和 commit`后，在master分支执行`git merge feature1`，会出现冲突。
+
+![1540802354534](git.assets/1540802354534.png)
+
+```
+λ cat readme.txt
+welcome
+<<<<<<< HEAD
+I am master
+=======
+I am another
+>>>>>>> another
+```
+
+此时只能修改出现冲突的文件，然后再执行`add 和 commit`。
+
+![1540802629093](git.assets/1540802629093.png)
+
+
+
+可以使用`git log --graph --pretty=oneline --abbrev-commit`查看分支合并情况。
+
+```
+λ  git log --graph --pretty=oneline --abbrev-commit
+*   2c939ba (HEAD -> master) fix conflict
+|\
+| * 8fd1223 (another) another modified readme.txt
+* | 030e33f master modified readme.txt
+|/
+* 2acc150 '.'
+* 277fc0e (origin/master) add branch
+* 569fa04 add notebook
+* 466ae31 create readme.txt
+```
+
+
+
+### 分支管理策略
+
+通常，合并分支时，如果可能，Git会用`Fast forward`模式，但这种模式下，删除分支后，会丢掉分支信息。
+如果要强制禁用`Fast forward`模式，**Git就会在merge时生成一个新的commit**，这样，从分支历史上就可以看出分支信息。
+
+合并的时候执行`git merge --no-ff -m "merge with no-ff" brandch-name`。由于产生新的commit，需要带上-m。
+
+
+
+### git  stash
+
+利用该命令可以保存当前现场，然后切换到其他分支干活。完成之后再回到原始分支，并执行一下命令恢复现场
+
+- `git stash pop`：恢复的同时把stash内容也删了
+- `git stash apply; git stash drop`：若不执行后者，stash内容并不删除
+
+可以多次stash，然后通过`git stash list`查看stash内容，并执行`git stash apply stash-name`恢复到某一状态。
+
+
+
+### 多人协作
+
+`git clone`后，执行`git checkout -b dev origin/dev`创建远程`origin`的`dev`分支到本地，之后`add commit push`。
+
+### 如果在别人push之后执行push，需要先执行`git pull`获取最新的内容，pull前需要设置
+
+`git branch --set-upstream-to=origin/dev dev`，指定本地`dev`分支与远程`origin/dev`分支的链接。之后再merge，如果有冲突，则解决冲突后push。
+
+### rebase
+
+- rebase操作可以把本地未push的分叉提交历史整理成直线；
+- rebase的目的是使得我们在查看历史提交的变化时更容易，因为分叉的提交需要三方对比。
+
+## 标签
+
+标签与commit ID 的关系 类似于 域名和IP地址 的关系
+
+### 创建标签
+
+`git tag <name>`：创建标签
+`git tag`：查看所有标签，不是按时间列出
+`git show <tagname>`：查看标签信息
+`git tag -a v0.1 -m "message" commitID`：创建带有说明的标签，用`-a`指定标签名，`-m`指定说明文字
+
+默认标签是打在最新提交的commit上的，执行`git tag v0.9 commitID`对历史commit打标签。
+
+### 管理标签
+
+`git tag -d v0.1`：删除标签
+创建的标签都只存储在本地，不会自动推送到远程。所以，打错的标签可以在本地安全删除。
+
+`git push origin <tagname>`：推送某个标签到远程
+
+`git push origin --tags`：一次性推送全部尚未推送到远程的本地标签
+
+#### 删除已经推送到远程的标签
+
+先本地删除：`git tag -d v0.9`
+再远程删除：`git push origin :refs/tags/v0.9`
 
 
 
 
 
+## 自定义git
 
+### .gitignore
 
+https://github.com/github/gitignore
 
+添加被.gitignore忽略的文件：`git add -f App.class`
 
+`git check-ignore -v App.class`：找出来到底哪个规则匹配忽略
 
+每个仓库的git配置文件在`.git/config文件`中。
 
-
-
-
-
-
+当前用户的Git配置文件放在用户主目录下的一个隐藏文件`.gitconfig`中。
 
