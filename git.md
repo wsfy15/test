@@ -282,3 +282,19 @@ https://github.com/github/gitignore
 
 当前用户的Git配置文件放在用户主目录下的一个隐藏文件`.gitconfig`中。
 
+
+
+## 从master分支clone，切换到其他分支进行开发
+
+git clone后，执行`git checkout -b develop origin/develop`切换到develop分支。
+
+`git checkout -b <lbranch> --track <remote>/<rbranch>`：从远程分支<rbranch>取得本地分支<lbranch>
+
+提交的时候用 `git push origin develop`
+
+`git push [remoteName] [localBranchName]`
+
+
+
+
+
