@@ -1,2 +1,1 @@
-welcome
-we are master and another
+记录使用git的经验
