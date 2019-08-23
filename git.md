@@ -1,18 +1,143 @@
-## git
+# git
+
+## 基础使用
+
+### git  config
+
+```
+# 针对该电脑上的所有用户进行配置
+$ git config --system user.name 'xxx'
+$ git config --system user.email 'xxx@xx.com'
+
+# 全局配置用户信息
+$ git config --global user.name 'xxx'
+$ git config --global user.email 'xxx@xx.com'
+
+# 配置在某个仓库中生效的用户信息(在该仓库中时，local的配置优先级比global高)
+$ git config --local user.name 'xxx'
+$ git config --local user.email 'xxx@xx.com'
+
+# 查看配置信息
+$ git config --global --list
+$ git config --local --list
+
+# 清除配置信息
+$ git config --unset --global user.name
+```
 
 
 
-`git init`：新建仓库
+### 新建仓库
+
+`git init`
+
+
 
 ### 提交
 
-### `touch readme.txt`
+提交到**本地仓库**
 
-`git add readme.txt`
+```
+$ touch readme.txt
+$ git add readme.txt
+$ git commit -m "create readme.txt"
+```
 
-`git commit -m "create readme.txt"`
+![1566561698570](git.assets/1566561698570.png)
 
-提交到了**本地仓库**
+对于tracked的文件，修改后，可以用`git add -u`添加至暂存区（u表示update）。
+
+
+
+### 文件重命名
+
+`git mv oldname newname`
+
+
+
+### 查看版本演变历史
+
+```
+$ git log
+
+# 在一行上展示一次commit
+$ git log --oneline
+
+# 查看最近的4个commit
+$ git log -n4
+
+# 图形化方式 查看 所有 分支
+$ git log --all --graph
+
+# 查看temp分支的coomit（如果有--all还是会查看所有分支）
+$ git log --oneline temp
+
+# 查看所有参数
+$ git help --web log
+```
+
+
+
+### .git目录
+
+```
+$ cd .git && ls
+config  description  HEAD  hooks/  index  info/  logs/  objects/  packed-refs  refs/
+
+# 当前分支，切换分支时该文件会改变
+$ cat HEAD
+ref: refs/heads/master
+
+$ cat config
+[core]
+        repositoryformatversion = 0
+        filemode = false
+        bare = false
+        logallrefupdates = true
+        symlinks = false
+        ignorecase = true
+[remote "origin"]
+        url = git@github.com:wsfy15/useGit.git
+        fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+        remote = origin
+        merge = refs/heads/master
+# 如果执行了git config --local user.name 'xxx'，则会有user的相关信息 
+
+$ ls refs
+heads/  remotes/  tags/
+
+# 本地所有分支
+$ ls refs/heads/
+master
+
+# 远程分支
+$ ls refs\remotes\
+origin/
+
+# 存储一个指针
+$ cat refs/heads/master
+1e71a1f8f713efccd62244fe68a8c8694b4da892
+
+$ git branch -av
+* master                1e71a1f modified readme.txt
+  remotes/origin/HEAD   -> origin/master
+  remotes/origin/master 1e71a1f modified readme.txt
+  
+# cat-file -p 可查看内容  -t 查看类型(commit、tree、blob)
+$ git cat-file -t 1e71a1f8f7
+commit
+```
+
+
+
+#### commit、tree、blob三种对象间的关系
+
+![1566566272933](git.assets/1566566272933.png)
+
+- 一个commit只能对应一棵tree，这颗tree记录了这次commit时的所有文件、目录。
+- 目录也是一颗tree（图中images、styles为文件夹）。
+- blob跟文件名没有关系，如果两个文件内容一样，git将其视为唯一的一个blob。节约存储空间。
 
 
 
@@ -21,7 +146,7 @@
 `git log`查看以往版本
 
 ```
-root@ubuntu-xenial:~/git# git log --pretty=oneline
+root@ubuntu-xenial:~/git# git log --oneline
 1fb44d9fa1b238436e211c1a86bcd511812585a9 3->5
 c0d39336272979011457f47cb3bbdf416677ebc0 1->3
 b9ac34fddc12df3bf96e4252e8d6674df0ac5b86 create
@@ -117,8 +242,11 @@ b9ac34f HEAD@{4}: commit (initial): create
 `git checkout -b dev`：`-b`参数表示创建并切换。相当于以下两条命令
 
 ```
-$ git branch dev
-$ git checkout dev
+$ git branch dev   # 创建分支
+$ git checkout dev  # 切换分支
+
+# 从某一个版本创建分支
+$ git checkout -b new_branch_name version
 ```
 
 ![1540800427961](git.assets/1540800427961.png)
