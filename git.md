@@ -85,6 +85,7 @@ $ cd .git && ls
 config  description  HEAD  hooks/  index  info/  logs/  objects/  packed-refs  refs/
 
 # 当前分支，切换分支时该文件会改变
+# HEAD既可以指向branch、tag，也可以指向commit
 $ cat HEAD
 ref: refs/heads/master
 
@@ -141,6 +142,70 @@ commit
 
 
 
+### 分离头指针
+
+checkout到某一次历史提交时，就会处于‘detached HEAD’状态。即工作在没有分支的状态下，如果此时切换到其他分支，那么之前做的修改（commit过的）可能被git当作垃圾丢弃（因为没有分支与其关联）。
+
+所以当checkout到某一次历史提交时，如果对代码进行修改，最好新建一个分支，以保存你的commit，即以`git checkout -b <new-branch-name>`的方式进行checkout。
+
+
+
+### 修改最新的commit的message
+
+`git commit --amend`
+
+
+
+### 修改老旧的commit的message
+
+想修改commit A的message，则rebase到A的父亲。
+
+`git rebase -i <commit's father's commit-id>`
+
+在本地执行的commit但还没提交到团队仓库，就可以这样操作。如果已经提交到团队仓库，将影响到其他人的工作。
+
+
+
+### 把连续的多个commit整理成1个
+
+将A、B、C三次commit整理成1个，假设commit 顺序为D->C->B->A，则要rebase到commit D。
+
+```
+$ git rebase -i <D's commit-id>
+```
+
+
+
+### 把间隔的多个commit整理成1个
+
+假设commit顺序为C->B->A，将C和A合并为1次commit。
+
+```
+$ git rebase -i <C's commit-id>
+# 如果C是第一次commit，需要在弹出来的编辑器中第一行添加"pick C's commit-id"
+# 然后在该pick下面加入"s <A's commit-id>  <message>"
+# 将已有的"pick <A's commit-id>  <message>"删掉
+```
+
+
+
+### 消除最近的几次commit
+
+```
+# --hard：HEAD指向commit-id，且工作区和暂存区的内容恢复到该commit的状态，会导致当前变更但没提交的内容丢失
+$ git reset --hard <commit-id>
+
+# 仅修改HEAD指针指向上一次commit，不修改暂存区和工作区
+$ git reset --soft HEAD~
+
+# 修改HEAD指针指向上一次commit和重置暂存区到上一次commit的状态,但不修改工作区
+$ git reset HEAD~
+```
+
+
+
+
+
 ### 回退版本
 
 `git log`查看以往版本
@@ -185,11 +250,12 @@ b9ac34f HEAD@{4}: commit (initial): create
 
 ### git diff 
 
-`git diff`：工作区跟仓库分支的比较
-
-`git diff --cached`：stage区和仓库分支上的比较，add后但是没有commit	，这个时候只是在stage中，可以确认下修改是否正确，如果正确无误可以commit合并到分支
-
-![1540797231504](git.assets/1540797231504.png)
+- `git diff`：工作区跟暂存区的比较
+- `git diff --cached`：暂存区和仓库分支上的比较，add后但是没有commit，这个时候只是在暂存区中，可以确认下修改是否正确，如果正确无误可以commit合并到分支
+  ![1540797231504](git.assets/1540797231504.png)
+- `git diff commit1 commit2`：比较两次commit时的差异
+- `git diff HEAD HEAD^1（HEAD~）`：HEAD与HEAD的父亲 的差异
+- `git diff <branch1-name> <branch2-name> [-- index.html]`：比较两个分支[index.html]  的差异
 
 
 
@@ -199,7 +265,7 @@ b9ac34f HEAD@{4}: commit (initial): create
 
 - 一种是`readme.txt`自修改后还没有被放到暂存区，现在，撤销修改就回到和版本库一模一样的状态；
 
-- 一种是`readme.txt`已经添加到暂存区后，又作了修改，现在，撤销修改就回到添加到暂存区后的状态。
+- 一种是`readme.txt`已经添加到暂存区后，又作了修改，现在，就恢复为暂存区里的readme.txt。
 
 **`git checkout -- file`命令中的`--`很重要，没有`--`，就变成了“切换到另一个分支”的命令。**
 
@@ -207,15 +273,44 @@ b9ac34f HEAD@{4}: commit (initial): create
 
 ### 丢弃暂存区（stage）的修改
 
-已经执行`git add`了，执行`git reset HEAD <file>`，可以把暂存区的修改撤销掉
+已经执行`git add`了，执行`git reset HEAD <filename>`（没有加filename则将暂存区所有文件都恢复为HEAD里的文件），可以把暂存区的修改撤销掉
+
+```
+$ git reset HEAD 
+$ git diff -cached
+# 无输出
+```
 
 
 
 ### 删除文件
 
 - 如果你用的rm删除文件，那就相当于只删除了工作区的文件，如果想要恢复，直接用`git checkout -- <file>`就可以
-- 如果你用的是git rm删除文件，那就相当于不仅删除了文件，而且还添加到了暂存区，需要先`git reset HEAD <file>`，然后再`git checkout -- <file>`
+- 如果你用的是`git rm`删除文件，那就相当于不仅删除了文件，而且还添加到了暂存区，要恢复的话需要先`git reset HEAD <file>`，然后再`git checkout -- <file>`
 - 如果你想彻底把版本库的删除掉，先`git rm`，再`git commit `就ok了
+
+
+
+### git stash
+
+开发中临时加塞了紧急任务，可以先将当前的工作区存放起来，并将工作区重置为上次commit时的状态。
+
+```
+$ git stash
+
+# 查看stash情况
+$ git stash list
+
+# 应用stash栈顶的工作区，但不删除stash中该记录
+$ git stash apply
+
+# 应用stash栈顶的工作区，并删除stash中该记录
+$ git stash pop
+```
+
+
+
+
 
 ## 远程仓库
 
@@ -268,6 +363,14 @@ $ git checkout -b new_branch_name version
 ![1540800490150](git.assets/1540800490150.png)
 
 完成修改后，执行`git add 和 git commit`。
+
+
+
+### 删除分支
+
+`git branch -D <branch-name>`
+
+
 
 ### 合并分支
 
@@ -356,14 +459,44 @@ I am another
 
 `git clone`后，执行`git checkout -b dev origin/dev`创建远程`origin`的`dev`分支到本地，之后`add commit push`。
 
-### 如果在别人push之后执行push，需要先执行`git pull`获取最新的内容，pull前需要设置
+如果在别人push之后执行push，需要先执行`git pull`获取最新的内容，如果
 
-`git branch --set-upstream-to=origin/dev dev`，指定本地`dev`分支与远程`origin/dev`分支的链接。之后再merge，如果有冲突，则解决冲突后push。
+- 已有commit，且存在修改文件与本次修改文件相同，但修改区域不同，则git可以merge
+- 已有commit，且存在修改文件与本次修改文件相同，修改区域相同，则需要手动解决冲突
+- 已有commit，修改文件没有覆盖，则直接合并
+
+pull前需要设置`git branch --set-upstream-to=origin/dev dev`，指定本地`dev`分支与远程`origin/dev`分支的链接。之后再merge，如果有冲突，则解决冲突后push。
+
+#### 同时变更文件名和文件内容
+
+用户A执行`git mv index.html index.htm`，并提交到远程仓库。
+
+用户B修改index.html文件，提交后准备push到远端。但是需要先pull，pull后git会自动解决冲突，将文件名改为index.htm，文件内容与提交时相同。
+
+
+
+#### 把同一文件改成不同文件名
+
+用户A执行`git mv index.htm index1.htm`并提交到远程仓库。
+
+用户B执行`git mv index.htm index2.htm`，push前需要先pull，pull报rename的冲突，先用`git status`查看文件情况。要保留index1.htm这个文件名，执行下列操作：
+
+```
+$ git rm index.htm
+$ git rm index2.htm
+$ git add index1.htm
+```
+
+
+
+
 
 ### rebase
 
 - rebase操作可以把本地未push的分叉提交历史整理成直线；
 - rebase的目的是使得我们在查看历史提交的变化时更容易，因为分叉的提交需要三方对比。
+
+
 
 ## 标签
 
@@ -422,7 +555,7 @@ git clone后，执行`git checkout -b develop origin/develop`切换到develop分
 
 `git push [remoteName] [localBranchName]`
 
-
+   
 
 
 
