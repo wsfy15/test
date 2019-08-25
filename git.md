@@ -405,11 +405,7 @@ $ git checkout -b new_branch_name version
 ```
 λ cat readme.txt
 welcome
-<<<<<<< HEAD
 I am master
-=======
-I am another
->>>>>>> another
 ```
 
 此时只能修改出现冲突的文件，然后再执行`add 和 commit`。
