@@ -370,6 +370,9 @@ $ git checkout -b new_branch_name version
 
 `git branch -D <branch-name>`
 
+### 将分支强制指向某一次提交
+`git branch -f master HEAD~3`
+将 master 分支强制指向 HEAD 的第 3 级父提交.
 
 
 ### 合并分支
