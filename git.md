@@ -1,4 +1,8 @@
+[TOC]
+
 # git
+
+
 
 ## 基础使用
 
@@ -313,9 +317,26 @@ $ git stash apply
 $ git stash pop
 ```
 
+
+
 ### git cherry-pick
+
 将一些提交复制到当前所在的位置（HEAD）。
 `git cherry-pick start_commit_id [end_commit_id]`，将一个或一部分commit全都放到当前分支下。
+
+
+
+### ^ 与 ~
+
+\~与\^后面都可以接数字，\~后面的数字的含义是前几次commit，例如`HEAD~2`表示HEAD的父commit的父commit，而\^则是用在某一次merge的commit时，想往前回退，指定回退到哪一个父commit。
+
+~与^可以一起使用，例如：
+![1567261928303](git.assets/1567261928303.png)
+
+`git chechout HEAD~^2~2`的结果是当前HEAD指向C3。`HEAD~`就到了C6，`^2`即选择merge时的第二个父commit，即C5,最后的`~2`则是C3。
+
+
+
 
 
 ## 远程仓库
@@ -330,7 +351,52 @@ $ git stash pop
 
 以后只需要`git push origin master`就可以推送最新修改。
 
-### 
+
+
+在本地checkout到远程分支会进入到分离头指针的状态。远程分支只有在远程仓库中相应的分支更新了以后才会更新。
+
+```
+$ git checkout origin/master # 此时进入分离头指针状态
+$ git commit
+# 此时origin/master并没有移动，而是HEAD指向了最新的commit
+```
+
+
+
+## git fetch
+
+实际上将本地仓库中的远程分支更新成了远程仓库相应分支最新的状态，并不会改变本地仓库的状态，也不会更新 `master` 分支，也不会修改磁盘上的文件。它只是做了以下两件事：
+
+- 从远程仓库下载本地仓库中缺失的提交记录
+- 更新远程分支指针(如 `origin/master`)
+
+
+
+## git pull
+
+`git fetch`之后，如何将这些变化更新到我们的工作当中。可以用以下的方法：
+
+- `git cherry-pick origin/master`
+- `git rebase origin/master`
+- `git merge origin/master`
+
+不过，由于先抓取更新再合并到本地分支这个流程很常用，因此 Git 提供了一个专门的命令来完成这两个操作。它就是 `git pull`。
+
+`git pull`就相当于`git fetch`和`git merge <just-fetched-branch>`的缩写。
+
+
+
+## git push
+
+`git push` 负责将**你的**变更上传到指定的远程仓库，并在远程仓库上合并你的新提交记录。一旦 `git push` 完成, 你的朋友们就可以从这个远程仓库下载你分享的成果了！
+
+*`git push` 不带任何参数时的行为与 Git 的一个名为 push.default 的配置有关。它的默认值取决于你正使用的 Git 的版本。*
+
+`git push`的时候同样会本地的远程分支。
+
+
+
+
 
 ## 分支
 
@@ -505,16 +571,24 @@ $ git add index1.htm
 
 ## 标签
 
-标签与commit ID 的关系 类似于 域名和IP地址 的关系
+标签与commit ID 的关系 类似于 域名和IP地址 的关系。
+
+分支很容易被人为移动，并且当有新的提交时，它也会移动。分支很容易被改变，大部分分支还只是临时的，并且还一直在变。
+
+标签可以**永远**指向某个提交记录的标识，比如软件发布新的大版本，或者是修正一些重要的 Bug 或是增加了某些新特性，然后像分支一样被引用。更难得的是，它们并不会随着新的提交而移动。你也不能checkout到某个标签上面进行修改提交，它就像是提交树上的一个锚点，标识了某个特定的位置。
+
+
 
 ### 创建标签
 
-`git tag <name>`：创建标签
+`git tag <name> [commit-id]`：为某一次提交创建标签，默认为HEAD所指向的位置
 `git tag`：查看所有标签，不是按时间列出
 `git show <tagname>`：查看标签信息
 `git tag -a v0.1 -m "message" commitID`：创建带有说明的标签，用`-a`指定标签名，`-m`指定说明文字
 
 默认标签是打在最新提交的commit上的，执行`git tag v0.9 commitID`对历史commit打标签。
+
+
 
 ### 管理标签
 
@@ -525,10 +599,36 @@ $ git add index1.htm
 
 `git push origin --tags`：一次性推送全部尚未推送到远程的本地标签
 
+
+
 #### 删除已经推送到远程的标签
 
 先本地删除：`git tag -d v0.9`
 再远程删除：`git push origin :refs/tags/v0.9`
+
+
+
+### git describe
+
+`Git Describe` 能帮你在提交历史中移动了多次以后找到方向；当你用 `git bisect`（一个查找产生 Bug 的提交记录的指令）找到某个提交记录时，或者是当你坐在你那刚刚度假回来的同事的电脑前时， 可能会用到这个命令。
+
+`git describe` 的语法是：
+
+```
+git describe <ref>
+```
+
+`<ref>` 可以是任何能被 Git 识别成提交记录的引用，如果没有指定的话，Git 会使用目前所检出的位置（`HEAD`）。
+
+它输出的结果是这样的：
+
+```
+<tag>_<numCommits>_g<hash>
+```
+
+`tag` 表示的是离 `ref` 最近的标签， `numCommits` 是表示这个 `ref` 与 `tag` 相差有多少个提交记录， `hash` 表示的是你所给定的 `ref` 所表示的提交记录哈希值的前几位。
+
+当 `ref` 提交记录上有某个标签时，则只输出标签名称。
 
 
 
