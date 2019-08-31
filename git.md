@@ -313,8 +313,9 @@ $ git stash apply
 $ git stash pop
 ```
 
-
-
+### git cherry-pick
+将一些提交复制到当前所在的位置（HEAD）。
+`git cherry-pick start_commit_id [end_commit_id]`，将一个或一部分commit全都放到当前分支下。
 
 
 ## 远程仓库
