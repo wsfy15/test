@@ -363,7 +363,7 @@ $ git commit
 
 
 
-## git fetch
+### git fetch
 
 实际上将本地仓库中的远程分支更新成了远程仓库相应分支最新的状态，并不会改变本地仓库的状态，也不会更新 `master` 分支，也不会修改磁盘上的文件。它只是做了以下两件事：
 
@@ -372,7 +372,19 @@ $ git commit
 
 
 
-## git pull
+#### 参数
+
+`git fetch <remote_repo_name> <place>`获取远程仓库的place分支，然后更新本地的远程place分支。
+
+`git fetch <remote_repo_name> <source>:<destination>`获取远程仓库的source分支，更新本地的destination分支。
+
+如果source为空，即`git fetch <remote_repo_name> :<destination>`则会在本地创建destination分支。
+
+`git fetch`会下载所有提交记录到各个本地的远程分支。
+
+
+
+### git pull
 
 `git fetch`之后，如何将这些变化更新到我们的工作当中。可以用以下的方法：
 
@@ -386,13 +398,56 @@ $ git commit
 
 
 
-## git push
+#### 参数
+
+`git pull <remote_repo_name> <place>`相当于`git fetch <remote_repo_name> <place>; git merge <remote_repo_name>/<place>`
+
+`git pull <remote_repo_name> <source>:<destination>`相当于`git pull <remote_repo_name> <source>:<destination>; git merge <destination>`
+
+
+
+### git push
 
 `git push` 负责将**你的**变更上传到指定的远程仓库，并在远程仓库上合并你的新提交记录。一旦 `git push` 完成, 你的朋友们就可以从这个远程仓库下载你分享的成果了！
 
 *`git push` 不带任何参数时的行为与 Git 的一个名为 push.default 的配置有关。它的默认值取决于你正使用的 Git 的版本。*
 
-`git push`的时候同样会本地的远程分支。
+`git push`的时候同样会更新本地的远程分支。
+
+
+
+#### 参数
+
+完整语法为`git push <remote_repo_name> <place>`。
+
+```
+git push origin master
+```
+
+这个命令的意思是：
+
+*切到本地仓库中的“master”分支，获取所有的提交，再到远程仓库“origin”中找到“master”分支，将远程仓库中没有的提交记录都添加上去，搞定之后告诉我。*
+
+通过“place”参数来告诉 Git 提交记录来自于 master, 要推送到远程仓库中的 master。
+
+
+
+如果把本地的A分支推送到远程仓库的B分支呢？
+
+`git push origin <source>:<destination>`这条命令就是将本地的source分支推送到远程仓库origin的destination分支。
+
+如果source为空，即`git push origin :<destination>`，则会将远程仓库origin的destination分支删除。
+
+
+
+
+
+### 远程跟踪
+
+让任意本地分支跟踪远程分支，该分支就会得到隐含的push目的地和merge的目标，即push的时候不用指定远程分支。有两种方法：
+
+- `git checkout -b newMaster origin/master`：从远程的master分支checkout一个新分支
+- `git branch -u origin/master foo`：foo分支就会跟踪远程的master分支，如果当前就处于foo分支，则可以省略foo，即`git branch -u origin/master`
 
 
 
